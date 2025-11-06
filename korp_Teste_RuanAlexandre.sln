@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36616.10 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicoEstoque", "ServicoEstoque\ServicoEstoque.csproj", "{A55C7EA5-0A30-46CF-9A41-117A92E91172}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicoFaturamento", "ServicoFaturamento\ServicoFaturamento.csproj", "{13A373B9-AEA4-43B2-8B75-04D897268127}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A55C7EA5-0A30-46CF-9A41-117A92E91172}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A55C7EA5-0A30-46CF-9A41-117A92E91172}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A55C7EA5-0A30-46CF-9A41-117A92E91172}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A55C7EA5-0A30-46CF-9A41-117A92E91172}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13A373B9-AEA4-43B2-8B75-04D897268127}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13A373B9-AEA4-43B2-8B75-04D897268127}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13A373B9-AEA4-43B2-8B75-04D897268127}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13A373B9-AEA4-43B2-8B75-04D897268127}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9CF3B34F-29FA-4A52-8D47-7E3D45609605}
+	EndGlobalSection
+EndGlobal
