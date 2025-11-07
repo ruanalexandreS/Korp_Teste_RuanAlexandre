@@ -34,7 +34,7 @@ namespace ServicoEstoque.Controllers
 
             // Retorna um status 201 (Created)
             // e aponta para o endpoint "GetProduto" para encontrar o novo item
-            return CreatedAtAction(nameof(GetProdutos), new { id = produto.Id }, produto);
+            return CreatedAtAction(nameof(GetProduto), new { id = produto.Id }, produto);
         }
 
         // Busca um produto pelo ID

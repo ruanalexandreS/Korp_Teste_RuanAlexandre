@@ -23,6 +23,6 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
-app.MapGet("/", () => "API de Estoque está em execução!");
+app.MapGet("/", () => "API de Estoque está rodando!");
 
 app.Run();
