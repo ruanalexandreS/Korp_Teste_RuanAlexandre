@@ -15,6 +15,5 @@ namespace ServicoFaturamento.Models
         public int Quantidade { get; set; }
 
         public int NotaFiscalId { get; set; }
-        public NotaFiscal? NotaFiscal { get; set; }
     }
 }

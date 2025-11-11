@@ -3,10 +3,10 @@ using ServicoFaturamento.Models;
 
 namespace ServicoFaturamento.Data
 {
-    public class FaturamentoContext : DbContext 
+    public class FaturamentoContext : DbContext
     {
         public FaturamentoContext(DbContextOptions<FaturamentoContext> options) : base(options)
-        { 
+        {
         }
 
         public DbSet<NotaFiscal> NotasFiscais { get; set; }
@@ -26,8 +26,10 @@ namespace ServicoFaturamento.Data
                 // Configura o Status como required e com tamanho máximo
                 entity.Property(e => e.Status).IsRequired().HasMaxLength(20);
 
-                // Relacionamento com ItemNotaFiscal (1:N)
-                entity.HasMany(e => e.Itens).WithOne(e => e.NotaFiscal).HasForeignKey(e => e.NotaFiscalId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasMany(e => e.Itens)
+                      .WithOne()
+                      .HasForeignKey(e => e.NotaFiscalId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }
