@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Ignorar a pasta node_modules do projeto Angular
+KorpApp/node_modules/
