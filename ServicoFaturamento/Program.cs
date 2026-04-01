@@ -15,18 +15,18 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
-// Configuração do banco de dados
+// Configuraï¿½ï¿½o do banco de dados
 var useInMemoryDb = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
 
 if (useInMemoryDb)
 {
-    // Configuração para banco em memória (desenvolvimento/testes)
+    // Configuraï¿½ï¿½o para banco em memï¿½ria (desenvolvimento/testes)
     builder.Services.AddDbContext<FaturamentoContext>(options =>
     options.UseInMemoryDatabase("Faturamento"));
 }
 else
 {
-    // Configuração para SQL Server (produção)
+    // Configuraï¿½ï¿½o para SQL Server (produï¿½ï¿½o)
     builder.Services.AddDbContext<FaturamentoContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -39,11 +39,13 @@ else
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configuração do HttpClient para o ServiçoEstoque
+// Configuraï¿½ï¿½o do HttpClient para o Serviï¿½oEstoque
 builder.Services.AddHttpClient("ServicoEstoque", client =>
 {
     client.BaseAddress = new Uri("https://localhost:7296");
 });
+
+builder.Services.AddHttpClient<ServicoFaturamento.Services.IAService>();
 
 var app = builder.Build();
 
@@ -60,5 +62,5 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.MapGet("/", () => 
-$"Serviço de Faturamento está rodando... Usando banco: {(useInMemoryDb ? "Em Memória" : "SQL Server")}");
+$"Serviï¿½o de Faturamento estï¿½ rodando... Usando banco: {(useInMemoryDb ? "Em Memï¿½ria" : "SQL Server")}");
 app.Run();

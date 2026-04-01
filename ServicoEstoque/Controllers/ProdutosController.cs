@@ -11,29 +11,28 @@ namespace ServicoEstoque.Controllers
     {
         private readonly EstoqueContext _context;
 
-        //Injenção de Dependência
+        // SemaphoreSlim estático garante que apenas uma thread
+        // por vez execute a baixa de estoque (controle de concorrência)
+        private static readonly SemaphoreSlim _semaforo = new SemaphoreSlim(1, 1);
+
         public ProdutosController(EstoqueContext context)
         {
             _context = context;
         }
 
-        // Lista todos os produtos (Requisito do PDF)
+        // Lista todos os produtos
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Produto>>> GetProdutos()
         {
-            //LINQ: _context.Produtos.ToListAsync()
             return await _context.Produtos.ToListAsync();
         }
 
-        // Cadastra um novo produto (Requisito do PDF)
+        // Cadastra um novo produto
         [HttpPost]
         public async Task<ActionResult<Produto>> PostProduto(Produto produto)
         {
             _context.Produtos.Add(produto);
             await _context.SaveChangesAsync();
-
-            // Retorna um status 201 (Created)
-            // e aponta para o endpoint "GetProduto" para encontrar o novo item
             return CreatedAtAction(nameof(GetProduto), new { id = produto.Id }, produto);
         }
 
@@ -41,39 +40,47 @@ namespace ServicoEstoque.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Produto>> GetProduto(int id)
         {
-
             var produto = await _context.Produtos.FindAsync(id);
 
             if (produto == null)
-            {
-                return NotFound(); // Retorna 404 se não achar
-            }
+                return NotFound();
 
             return produto;
         }
 
-        // Atualiza o saldo (Requisito do PDF para a nota fiscal)
+        // Atualiza o saldo com controle de concorrência
         [HttpPut("{id}/atualizar-saldo")]
         public async Task<IActionResult> AtualizarSaldo(int id, [FromBody] int quantidadeUtilizada)
         {
-             var produto = await _context.Produtos.FindAsync(id);
-
-            if (produto == null)
+            // Bloqueia outras requisições simultâneas
+            await _semaforo.WaitAsync();
+            try
             {
-                return NotFound("Produto não encontrado.");
-            }
+                // Relê o produto do banco dentro do lock para garantir saldo atual
+                var produto = await _context.Produtos
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == id);
 
-            if (produto.Saldo < quantidadeUtilizada)
+                if (produto == null)
+                    return NotFound("Produto não encontrado.");
+
+                if (produto.Saldo < quantidadeUtilizada)
+                    return BadRequest($"Saldo insuficiente. Disponível: {produto.Saldo}");
+
+                // Usa ExecuteUpdateAsync para atualizar direto no banco
+                // evitando race condition entre leitura e escrita
+                await _context.Produtos
+                    .Where(p => p.Id == id && p.Saldo >= quantidadeUtilizada)
+                    .ExecuteUpdateAsync(s => s.SetProperty(
+                        p => p.Saldo, p => p.Saldo - quantidadeUtilizada));
+
+                return NoContent();
+            }
+            finally
             {
-                return BadRequest("Saldo insuficiente."); // Retorna 400 
+                // Libera o semáforo mesmo se der erro
+                _semaforo.Release();
             }
-
-            produto.Saldo -= quantidadeUtilizada; //Atualiza o saldo
-
-            _context.Entry(produto).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent(); // Retorna 204 (Sucesso, sem conteúdo)
         }
     }
 }

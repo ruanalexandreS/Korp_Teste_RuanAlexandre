@@ -6,12 +6,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<EstoqueContext>(opt => opt.UseInMemoryDatabase("Estoque"));
+var useInMemory = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
+
+if (useInMemory)
+{
+    builder.Services.AddDbContext<EstoqueContext>(opt =>
+        opt.UseInMemoryDatabase("Estoque"));
+}
+else
+{
+    builder.Services.AddDbContext<EstoqueContext>(opt =>
+        opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Adiciona a polÌtica de CORS "AllowAll"
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
@@ -20,9 +30,10 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader());
 });
 
+builder.Services.AddHttpClient<ServicoEstoque.Services.IAService>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -30,11 +41,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
-
 app.UseHttpsRedirection();
-
 app.MapControllers();
-
-app.MapGet("/", () => "API de Estoque est· rodando!");
+app.MapGet("/", () => "API de Estoque est√° rodando!");
 
 app.Run();

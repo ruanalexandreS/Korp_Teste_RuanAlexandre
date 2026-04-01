@@ -11,25 +11,27 @@ namespace ServicoFaturamento.Data
 
         public DbSet<NotaFiscal> NotasFiscais { get; set; }
         public DbSet<ItemNotaFiscal> ItensNotaFiscal { get; set; }
+        public DbSet<RequisicaoProcessada> RequisicoesProcessadas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configuração da NotaFiscal
             modelBuilder.Entity<NotaFiscal>(entity =>
             {
-                //Indice único para o campo NumeroSequencial
                 entity.HasIndex(e => e.NumeroSequencial).IsUnique();
-
-                //Indice para Status (ajuda em consultas por status)
                 entity.HasIndex(e => e.Status);
-
-                // Configura o Status como required e com tamanho máximo
                 entity.Property(e => e.Status).IsRequired().HasMaxLength(20);
-
                 entity.HasMany(e => e.Itens)
                       .WithOne()
                       .HasForeignKey(e => e.NotaFiscalId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Índice único para evitar duplicatas de idempotência
+            modelBuilder.Entity<RequisicaoProcessada>(entity =>
+            {
+                entity.HasIndex(e => e.IdempotencyKey).IsUnique();
+                entity.Property(e => e.IdempotencyKey).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Resultado).IsRequired().HasMaxLength(500);
             });
         }
     }

@@ -87,51 +87,81 @@ namespace ServicoFaturamento.Controllers
         }
 
         // POST: api/notasfiscais/{id}/imprimir
-        [HttpPost("{id}/imprimir")]
-        public async Task<IActionResult> ImprimirNotaFiscal(int id)
+      [HttpPost("{id}/imprimir")]
+public async Task<IActionResult> ImprimirNotaFiscal(
+    int id,
+    [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey)
+{
+    // Verifica se essa requisição já foi processada
+    if (!string.IsNullOrEmpty(idempotencyKey))
+    {
+        var jaProcessado = await _context.RequisicoesProcessadas
+            .FirstOrDefaultAsync(r => r.IdempotencyKey == idempotencyKey);
+
+        if (jaProcessado != null)
         {
-            var notaFiscal = await _context.NotasFiscais.Include(n => n.Itens).FirstOrDefaultAsync(n => n.Id == id);
-
-            if (notaFiscal == null) return NotFound("Nota Fiscal não encontrada.");
-
-            if (notaFiscal.Status != StatusAberta)
-            {
-                return BadRequest($"Esta nota fiscal não pode ser impressa (Status: {notaFiscal.Status}).");
-            }
-
-            var httpClient = _httpClientFactory.CreateClient("ServicoEstoque");
-
-            try
-            {
-                if (notaFiscal.Itens != null)
-                {
-                    foreach (var item in notaFiscal.Itens)
-                    {
-                        var response = await httpClient.PutAsJsonAsync($"api/produtos/{item.ProdutoId}/atualizar-saldo", item.Quantidade);
-                        response!.EnsureSuccessStatusCode();
-                    }
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "Falha ao atualizar o estoque para a nota {NotaId}.", id);
-                return StatusCode(502, $"Falha ao atualizar o estoque: {ex.Message}");
-            }
-
-            notaFiscal.Status = StatusFechada;
-            _context.Entry(notaFiscal).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Erro ao atualizar status da nota {NotaId} para Fechada.", id);
-                return StatusCode(500, "Erro ao atualizar o status da nota fiscal.");
-            }
-
-            return Ok("Nota impressa com sucesso e estoque atualizado.");
+            _logger.LogInformation("Requisição idempotente detectada. Key: {Key}", idempotencyKey);
+            return Ok(jaProcessado.Resultado);
         }
     }
+
+    var notaFiscal = await _context.NotasFiscais
+        .Include(n => n.Itens)
+        .FirstOrDefaultAsync(n => n.Id == id);
+
+    if (notaFiscal == null) return NotFound("Nota Fiscal não encontrada.");
+
+    if (notaFiscal.Status != StatusAberta)
+        return BadRequest($"Esta nota fiscal não pode ser impressa (Status: {notaFiscal.Status}).");
+
+    var httpClient = _httpClientFactory.CreateClient("ServicoEstoque");
+
+    try
+    {
+        if (notaFiscal.Itens != null)
+        {
+            foreach (var item in notaFiscal.Itens)
+            {
+                var response = await httpClient.PutAsJsonAsync(
+                    $"api/produtos/{item.ProdutoId}/atualizar-saldo", item.Quantidade);
+                response!.EnsureSuccessStatusCode();
+            }
+        }
+    }
+    catch (HttpRequestException ex)
+    {
+        _logger.LogError(ex, "Falha ao atualizar o estoque para a nota {NotaId}.", id);
+        return StatusCode(502, $"Falha ao atualizar o estoque: {ex.Message}");
+    }
+
+    notaFiscal.Status = StatusFechada;
+    _context.Entry(notaFiscal).State = EntityState.Modified;
+
+    var resultado = $"Nota {notaFiscal.NumeroSequencial} impressa com sucesso e estoque atualizado.";
+
+    try
+    {
+        await _context.SaveChangesAsync();
+
+        // Salva a chave de idempotência após sucesso
+        if (!string.IsNullOrEmpty(idempotencyKey))
+        {
+            _context.RequisicoesProcessadas.Add(new RequisicaoProcessada
+            {
+                IdempotencyKey = idempotencyKey,
+                ProcessadoEm = DateTime.UtcNow,
+                Resultado = resultado
+            });
+            await _context.SaveChangesAsync();
+        }
+    }
+    catch (DbUpdateException ex)
+    {
+        _logger.LogError(ex, "Erro ao atualizar status da nota {NotaId}.", id);
+        return StatusCode(500, "Erro ao atualizar o status da nota fiscal.");
+    }
+
+    return Ok(resultado);
+}
+}
 }
