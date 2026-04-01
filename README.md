@@ -1,130 +1,202 @@
-# Teste Prático Korp - Desenvolvedor Jr. (C\# + Angular)
+# Teste Prático Korp - Desenvolvedor Jr. (C# + Angular)
 
-Este repositório contém a solução completa para o desafio técnico da Korp, implementando um sistema de emissão de notas fiscais com uma arquitetura de microsserviços em .NET e um frontend em Angular.
+Este repositório contém a solução completa para o desafio técnico da Korp, implementando um sistema de emissão de notas fiscais com arquitetura de microsserviços em .NET e frontend em Angular.
+
+---
 
 ## 🚀 Funcionalidades Implementadas
 
-O projeto atende a todos os requisitos obrigatórios e inclui funcionalidades adicionais que demonstram boas práticas de engenharia de software.
-
 ### Requisitos Obrigatórios
 
-  * ✅ **Arquitetura de Microsserviços:** O backend é dividido em dois serviços independentes: `ServicoEstoque` e `ServicoFaturamento`.
-  * ✅ **Cadastro de Produtos:** O frontend permite o cadastro de novos produtos (Código, Descrição, Saldo) que são persistidos no `ServicoEstoque`.
-  * ✅ **Cadastro de Notas Fiscais:** O frontend permite a criação de novas notas fiscais (com um ou mais itens) que são persistidas no `ServicoFaturamento`.
-  * ✅ **Impressão de Notas Fiscais:**
-      * O botão "Imprimir" chama o `ServicoFaturamento`.
-      * O `ServicoFaturamento` chama o `ServicoEstoque` para dar baixa no saldo dos produtos.
-      * O status da nota é atualizado para "Fechada".
-      * Não é permitido imprimir notas que não estejam "Abertas".
-  * ✅ **Tratamento de Falhas:** A aplicação é resiliente. Se o `ServicoEstoque` estiver offline durante uma impressão, o `ServicoFaturamento` reporta o erro, a nota permanece "Aberta" e o frontend exibe uma notificação de falha ao usuário.
+* ✅ **Arquitetura de Microsserviços:** Backend dividido em dois serviços independentes: `ServicoEstoque` e `ServicoFaturamento`.
+* ✅ **Cadastro de Produtos:** Frontend permite cadastro de produtos (Código, Descrição, Saldo) persistidos no `ServicoEstoque`.
+* ✅ **Cadastro de Notas Fiscais:** Frontend permite criação de notas fiscais com um ou mais itens.
+* ✅ **Impressão de Notas Fiscais:** Ao imprimir, o `ServicoFaturamento` chama o `ServicoEstoque` para dar baixa no saldo e atualiza o status para "Fechada".
+* ✅ **Tratamento de Falhas:** Se o `ServicoEstoque` estiver offline, o erro é reportado, a nota permanece "Aberta" e o frontend exibe notificação de falha.
 
 ### ✨ Funcionalidades Adicionais (Bônus)
 
-  * **Reatividade em Tempo Real:** A lista de produtos e a lista de notas se atualizam automaticamente na tela após um novo cadastro (sem a necessidade de F5), usando `Subject` do RxJS.
-  * **Middleware de Erros:** O backend `ServicoFaturamento` possui um `ErrorHandlingMiddleware` global que captura todas as exceções não tratadas e as formata em uma resposta JSON padronizada.
-  * **Validação Avançada:** Os `Models` do backend (C\#) e os `Forms` do frontend (Angular) usam validação de dados (`[Required]`, `[Range]`, `Validators.required`).
-  * **Banco de Dados Configurável:** O `ServicoFaturamento` está configurado para alternar entre `InMemoryDatabase` (para testes) e `SQL Server` (para produção) com base em uma única flag no `appsettings.json`.
-  * **Paginação no Backend:** A API de listagem de notas (`GET /listar`) possui lógica de paginação (`Skip`/`Take`).
+* ✅ **Idempotência:** O endpoint de impressão aceita um `Idempotency-Key` no header. Requisições repetidas com a mesma chave retornam o resultado cacheado sem reprocessar.
+* ✅ **Controle de Concorrência:** O `ServicoEstoque` usa `SemaphoreSlim` + `ExecuteUpdateAsync` para garantir que duas impressões simultâneas do mesmo produto não causem inconsistência de saldo.
+* ✅ **Testes Unitários:** 5 testes no projeto `ServicoFaturamento.Tests` cobrindo criação de notas, numeração sequencial, validação de status, idempotência e tratamento de erros.
+* ✅ **Inteligência Artificial:** Integração com a API da Anthropic (Claude) em dois pontos:
+  * Ao imprimir uma nota, a IA gera um resumo profissional automaticamente.
+  * Endpoint `GET /api/produtos/sugestao-estoque` analisa o estoque e sugere reposições.
+* ✅ **SQL Server:** Ambos os serviços alternam entre `InMemoryDatabase` e `SQL Server` via flag `UseInMemoryDatabase` no `appsettings.json`.
+* ✅ **Reatividade em Tempo Real:** Listas se atualizam sem F5 usando `Subject` do RxJS.
+* ✅ **Middleware de Erros:** `ErrorHandlingMiddleware` global no `ServicoFaturamento` captura exceções e retorna respostas JSON padronizadas.
+* ✅ **Paginação no Backend:** `GET /listar` usa `Skip`/`Take` para paginação.
 
------
+---
 
 ## 🛠️ Arquitetura e Tecnologias
 
-A solução é dividida em 3 projetos principais que rodam de forma independente:
+### Estrutura da Solução
+```
+Korp_Teste_RuanAlexandre/
+├── ServicoEstoque/          # API REST - Controle de produtos e saldos
+├── ServicoFaturamento/      # API REST - Gestão de notas fiscais
+├── ServicoFaturamento.Tests/ # Testes unitários (xUnit + Moq)
+└── KorpApp/                 # Frontend Angular
+```
 
-1.  **`ServicoEstoque` (Backend - C\#):**
+### Stack
 
-      * API REST em .NET 8.
-      * Responsável por todo o CRUD de Produtos e atualização de saldo.
-      * Utiliza **EF Core** com **InMemory Database**.
-      * Documentado com **Swagger**.
-      * Configurado com **CORS** para permitir chamadas do frontend.
+| Camada | Tecnologia |
+|--------|-----------|
+| Backend | .NET 9, ASP.NET Core, EF Core 9 |
+| Banco de Dados | SQL Server (Podman/Docker) ou InMemory |
+| Frontend | Angular 17+, Angular Material, RxJS |
+| Testes | xUnit, Moq, EF InMemory |
+| IA | Anthropic Claude API (claude-haiku) |
 
-2.  **`ServicoFaturamento` (Backend - C\#):**
+---
 
-      * API REST em .NET 8.
-      * Responsável pelo CRUD de Notas Fiscais.
-      * Utiliza `IHttpClientFactory` para se comunicar com o `ServicoEstoque`.
-      * Usa **EF Core** com lógica para alternar entre **InMemory** e **SQL Server**.
-      * Possui o **Middleware de Tratamento de Erros**.
+## 🧠 Decisões Técnicas
 
-3.  **`KorpApp` (Frontend - Angular):**
+### Por que `IHttpClientFactory` e não `HttpClient` diretamente?
+O `HttpClient` instanciado manualmente sofre de *socket exhaustion* em aplicações de longa duração. O `IHttpClientFactory` gerencia o ciclo de vida dos `HttpMessageHandler`, reutilizando conexões TCP de forma eficiente e segura.
 
-      * Aplicação em **Angular** (standalone components).
-      * Utiliza **Angular Material** para a interface (Tabelas, Formulários, Botões, Cards, Notificações).
-      * Usa `HttpClientModule` para consumir as duas APIs.
-      * Usa **RxJS** (`Subject`, `subscribe`) para reatividade da UI.
-      * Usa **Reactive Forms** para validação dos formulários.
+### Por que `SemaphoreSlim` para controle de concorrência?
+É thread-safe, async-friendly e não bloqueia a thread pool. Garante que apenas uma thread por vez execute a baixa de estoque, evitando race conditions sem precisar de transações distribuídas complexas. Combinado com `ExecuteUpdateAsync`, a atualização é feita diretamente no banco em uma única operação atômica.
 
------
+### Por que Idempotency Key no header?
+Padrão de mercado adotado por Stripe e AWS. Permite que o cliente reenvie a requisição com segurança em caso de timeout ou falha de rede, sem causar efeitos colaterais como cobranças ou baixas de estoque duplicadas.
+
+### Por que SQL Server via Podman e não instalação nativa?
+No Linux (Bazzite/Fedora), o SQL Server não tem instalação nativa. Podman é o equivalente rootless do Docker, já incluído no Bazzite, e permite rodar o SQL Server em container sem configurações complexas.
+
+### LINQ utilizado
+* `OrderByDescending` + `FirstOrDefaultAsync` — numeração sequencial de notas
+* `Skip` / `Take` — paginação na listagem de notas
+* `Sum` — total de itens para o resumo da IA
+* `Select` — projeção de dados para o prompt da IA
+* `Where` + `ExecuteUpdateAsync` — atualização atômica do saldo
+
+### Ciclos de vida do Angular utilizados
+* `ngOnInit` — carregamento inicial de produtos e notas via `HttpClient`
+* `OnDestroy` + `unsubscribe` — prevenção de memory leaks nos observables
+
+### RxJS
+* `Subject` — notifica componentes irmãos após cadastro sem necessidade de `EventEmitter`
+* `subscribe` — reage às respostas das APIs REST
+
+---
+
+## ⚙️ Configuração do Banco de Dados
+
+### Rodando o SQL Server com Podman
+```bash
+podman run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=KorpSenha123!" \
+  -p 1433:1433 --name sqlserver \
+  -d mcr.microsoft.com/mssql/server:2022-latest
+```
+
+### Configurando o `appsettings.json`
+
+> ⚠️ O arquivo `appsettings.json` **não está no repositório** por conter credenciais. Crie-o manualmente em cada serviço:
+
+**ServicoEstoque/appsettings.json:**
+```json
+{
+  "UseInMemoryDatabase": false,
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost,1433;Database=KorpEstoque;User Id=sa;Password=KorpSenha123!;TrustServerCertificate=True;"
+  },
+  "Anthropic": {
+    "ApiKey": "SUA_CHAVE_AQUI"
+  }
+}
+```
+
+**ServicoFaturamento/appsettings.json:**
+```json
+{
+  "UseInMemoryDatabase": false,
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost,1433;Database=KorpFaturamento;User Id=sa;Password=KorpSenha123!;TrustServerCertificate=True;"
+  },
+  "Anthropic": {
+    "ApiKey": "SUA_CHAVE_AQUI"
+  }
+}
+```
+
+### Aplicando as migrations
+```bash
+cd ServicoEstoque
+dotnet ef database update
+
+cd ../ServicoFaturamento
+dotnet ef database update
+```
+
+---
 
 ## ▶️ Como Executar o Projeto
 
-Para rodar este projeto, você precisará ter os dois backends (APIs) e o frontend (Angular) rodando simultaneamente.
-
 ### Pré-requisitos
 
-  * Visual Studio 2022 (com a carga de trabalho .NET 8)
-  * Node.js (LTS)
-  * Angular CLI (`npm install -g @angular/cli`)
-  * Visual Studio Code (Recomendado para o Angular)
+* .NET 9 SDK
+* Node.js (LTS) + Angular CLI (`npm install -g @angular/cli`)
+* Podman ou Docker (para o SQL Server)
+* VS Code
 
-### 1\. 🚀 Rodando o Backend (Serviço de Estoque e Faturamento)
+### 1. Rodando o Backend
+```bash
+# Terminal 1 - ServicoEstoque
+cd ServicoEstoque
+dotnet run
 
-1.  Abra o arquivo `korp_Teste_RuanAlexandre.sln` no **Visual Studio 2022**.
-2.  No "Gerenciador de Soluções", clique com o botão direito na **Solução** (`Solução 'korp_Teste_RuanAlexandre'`).
-3.  Vá em **"Definir Projetos de Inicialização..."**.
-4.  Selecione **"Vários projetos de inicialização"**.
-5.  Defina a "Ação" como **"Iniciar"** para `ServicoEstoque` e `ServicoFaturamento`.
-6.  Clique em "Aplicar" e "OK".
-7.  Aperte o botão de "Play" (▶) (o triângulo verde) na barra de ferramentas.
+# Terminal 2 - ServicoFaturamento
+cd ServicoFaturamento
+dotnet run
+```
 
-**Resultado:** Duas janelas de terminal (ou Swagger) devem abrir, confirmando que as duas APIs estão rodando. Anote as portas (ex: `https://localhost:7296` para Estoque e `https://localhost:7103` para Faturamento).
+### 2. Rodando o Frontend
+```bash
+cd KorpApp
+npm install
+ng serve -o
+```
 
-### 2\. 🖥️ Rodando o Frontend (Aplicação Angular)
+Acesse `http://localhost:4200`.
 
-1.  Abra a pasta raiz do projeto (`korp_Teste_RuanAlexandre`) no **Visual Studio Code**.
-2.  Abra um novo terminal (no menu `Terminal` \> `Novo Terminal`).
-3.  Navegue até a pasta do frontend:
-    ```bash
-    cd KorpApp
-    ```
-4.  Instale as dependências (só na primeira vez):
-    ```bash
-    npm install
-    ```
-5.  Rode o servidor do Angular:
-    ```bash
-    ng serve -o
-    ```
+> **Nota:** Verifique as URLs nos serviços Angular caso as portas sejam diferentes:
+> * `KorpApp/src/app/services/estoque.service.ts`
+> * `KorpApp/src/app/services/faturamento.service.ts`
 
-**Resultado:** O seu navegador abrirá automaticamente no `http://localhost:4200` com a aplicação completa.
+---
 
-> **Nota:** Se a aplicação não conseguir se conectar ao backend, verifique as portas (URLs) nos arquivos de serviço do Angular:
->
->   * `KorpApp/src/app/services/estoque.service.ts` (deve apontar para a porta do `ServicoEstoque`)
->   * `KorpApp/src/app/services/faturamento.service.ts` (deve apontar para a porta do `ServicoFaturamento`)
+## 🧪 Rodando os Testes
+```bash
+cd ServicoFaturamento.Tests
+dotnet test
+```
 
------
+**Resultado esperado:** 5 testes, 0 falhas.
 
-## 🧪 Como Testar os Requisitos (Demonstração)
+---
 
-Com os 3 projetos rodando:
+## 🧪 Como Testar os Requisitos
 
-### Fluxo de Sucesso (Impressão)
+### Fluxo de Sucesso
 
-1.  Na tela `localhost:4200`, cadastre um novo produto (ex: "Produto A", Saldo "20").
-2.  O produto aparecerá na tabela "Produtos Cadastrados" (o ID dele será `1`).
-3.  No formulário de "Nota Fiscal", adicione um item (Produto ID: `1`, Quantidade: `5`).
-4.  Clique em "Salvar Nota Fiscal".
-5.  A nota aparecerá na tabela "Notas Fiscais Cadastradas" com o status **"Aberta"**.
-6.  Clique no botão "Imprimir" (🖨️) dessa nota.
-7.  **Resultado:** Você verá a notificação de sucesso, o status da nota mudará para **"Fechada"** e o botão "Imprimir" ficará desabilitado. (Se recarregar a página, o saldo do "Produto A" estará `15`).
+1. Cadastre um produto (ex: "Produto A", Saldo "20")
+2. Crie uma nota fiscal com esse produto (Quantidade: 5)
+3. Clique em "Imprimir"
+4. **Resultado:** Status muda para "Fechada", saldo reduz para 15, e a IA exibe um resumo da nota
 
-### Fluxo de Falha (Requisito Obrigatório)
+### Fluxo de Falha
 
-1.  Cadastre um novo produto (ex: "Produto B", Saldo "10").
-2.  Cadastre uma nova Nota Fiscal para ele (Produto ID: `2`, Quantidade: `1`). A nota aparecerá como **"Aberta"**.
-3.  Vá até o **Visual Studio 2022** e **pare** (botão "Stop" ⏹) o projeto `ServicoEstoque`.
-4.  Volte ao `localhost:4200` e clique no botão "Imprimir" (🖨️) da Nota 2.
-5.  **Resultado:** Você verá uma **notificação de erro** (ex: "Falha ao atualizar o estoque"). A nota **permanecerá "Aberta"** e o botão "Imprimir" continuará habilitado, provando que o sistema tratou a falha do microsserviço.
+1. Cadastre um produto e uma nota
+2. Pare o `ServicoEstoque`
+3. Clique em "Imprimir"
+4. **Resultado:** Notificação de erro, nota permanece "Aberta"
+
+### Sugestão de Estoque via IA
+```
+GET https://localhost:7296/api/produtos/sugestao-estoque
+```
+
+Retorna análise inteligente dos produtos com recomendações de reposição.
