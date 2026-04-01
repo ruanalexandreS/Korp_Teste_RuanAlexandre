@@ -1,22 +1,57 @@
-<h2>Produtos Cadastrados</h2>
+<mat-card>
+  <mat-card-header>
+    <mat-icon mat-card-avatar>inventory_2</mat-icon>
+    <mat-card-title>Produtos Cadastrados</mat-card-title>
+    <mat-card-subtitle>{{ produtos.length }} produto(s) no estoque</mat-card-subtitle>
+  </mat-card-header>
 
-<table mat-table [dataSource]="produtos" class="mat-elevation-z8">
+  <mat-card-content>
 
-<ng-container matColumnDef="codigo">
-    <th mat-header-cell *matHeaderCellDef> Código </th>
-    <td mat-cell *matCellDef="let produto"> {{produto.codigo}} </td>
-</ng-container>
+    @if (loading) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
 
-<ng-container matColumnDef="descricao">
-    <th mat-header-cell *matHeaderCellDef> Descrição </th>
-    <td mat-cell *matCellDef="let produto"> {{produto.descricao}} </td>
-</ng-container>
+    @if (erro) {
+      <div class="erro-banner">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ erro }}</span>
+      </div>
+    }
 
-<ng-container matColumnDef="saldo">
-    <th mat-header-cell *matHeaderCellDef> Saldo </th>
-    <td mat-cell *matCellDef="let produto"> {{produto.saldo}} </td>
-</ng-container>
+    @if (!loading && !erro) {
+      <table mat-table [dataSource]="produtos" class="mat-elevation-z2">
 
-  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-</table>
+        <ng-container matColumnDef="codigo">
+          <th mat-header-cell *matHeaderCellDef>Código</th>
+          <td mat-cell *matCellDef="let p">{{ p.codigo }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="descricao">
+          <th mat-header-cell *matHeaderCellDef>Descrição</th>
+          <td mat-cell *matCellDef="let p">{{ p.descricao }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="saldo">
+          <th mat-header-cell *matHeaderCellDef>Saldo</th>
+          <td mat-cell *matCellDef="let p">
+            <mat-chip [class.saldo-baixo]="saldoBaixo(p.saldo)">
+              <mat-icon matChipAvatar>{{ saldoBaixo(p.saldo) ? 'warning' : 'check_circle' }}</mat-icon>
+              {{ p.saldo }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell sem-dados" colspan="3">
+            <mat-icon>inbox</mat-icon>
+            <span>Nenhum produto cadastrado ainda.</span>
+          </td>
+        </tr>
+      </table>
+    }
+
+  </mat-card-content>
+</mat-card>

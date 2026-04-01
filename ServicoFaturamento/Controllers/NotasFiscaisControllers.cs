@@ -81,8 +81,8 @@ namespace ServicoFaturamento.Controllers
             var total = await query.CountAsync();
             var notas = await query.Skip((pagina - 1) * itensPorPagina).Take(itensPorPagina).ToListAsync();
 
-            Response.Headers.Add("X-Total-Count", total.ToString());
-            Response.Headers.Add("Access-Control-Expose-Headers", "X-Total-Count");
+            Response.Headers.Append("X-Total-Count", total.ToString());
+            Response.Headers.Append("Access-Control-Expose-Headers", "X-Total-Count");
             return Ok(notas);
         }
 

@@ -1,30 +1,34 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { EstoqueService, Produto } from '../../services/estoque.service'; 
-import { MatSnackBar } from '@angular/material/snack-bar'; 
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { EstoqueService, Produto } from '../../services/estoque.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common'; 
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-produto-form',
-  standalone: true, 
-  imports: [ 
+  standalone: true,
+  imports: [
     CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatCardModule
+    MatCardModule,
+    MatProgressSpinnerModule,
+    MatIconModule
   ],
   templateUrl: './produto-form.component.html',
   styleUrl: './produto-form.component.scss'
 })
-export class ProdutoFormComponent { 
+export class ProdutoFormComponent {
   produtoForm: FormGroup;
+  loading = false;
 
   constructor(
     private fb: FormBuilder,
@@ -39,18 +43,21 @@ export class ProdutoFormComponent {
   }
 
   onSubmit(): void {
-    if (this.produtoForm.valid) {
-      this.estoqueService.addProduto(this.produtoForm.value).subscribe({
-        next: (produtoAdicionado: Produto) => { 
-          this.snackBar.open('Produto cadastrado com sucesso!', 'Fechar', { duration: 3000 });
-          this.estoqueService.notificarAtualizacao();
-          this.produtoForm.reset({ saldo: 0 }); 
-        },
-        error: (err: any) => { 
-          this.snackBar.open('Erro ao cadastrar produto.', 'Fechar', { duration: 3000 });
-          console.error(err);
-        }
-      });
-    }
+    if (this.produtoForm.invalid) return;
+    this.loading = true;
+    this.estoqueService.addProduto(this.produtoForm.value).subscribe({
+      next: (_: Produto) => {
+        this.snackBar.open('Produto cadastrado com sucesso!', 'Fechar', { duration: 3000 });
+        this.estoqueService.notificarAtualizacao();
+        this.produtoForm.reset({ saldo: 0 });
+        this.loading = false;
+      },
+      error: (err: any) => {
+        const msg = err?.error?.title || err?.message || 'Erro ao cadastrar produto.';
+        this.snackBar.open(msg, 'Fechar', { duration: 5000 });
+        console.error(err);
+        this.loading = false;
+      }
+    });
   }
 }

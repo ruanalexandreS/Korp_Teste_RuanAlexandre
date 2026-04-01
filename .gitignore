@@ -365,3 +365,4 @@ FodyWeavers.xsd
 # Ignorar a pasta node_modules do projeto Angular
 KorpApp/node_modules/appsettings.json
 appsettings.json
+.claude/

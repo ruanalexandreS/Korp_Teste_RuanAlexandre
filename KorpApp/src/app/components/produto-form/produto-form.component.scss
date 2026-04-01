@@ -1,0 +1,36 @@
+mat-card {
+  border-radius: 12px !important;
+}
+
+mat-card-header {
+  margin-bottom: 16px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.saldo-field {
+  grid-column: 1;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 160px;
+    justify-content: center;
+  }
+}

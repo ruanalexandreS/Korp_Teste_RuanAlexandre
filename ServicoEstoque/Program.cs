@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using ServicoEstoque.Data;
-using ServicoEstoque.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 

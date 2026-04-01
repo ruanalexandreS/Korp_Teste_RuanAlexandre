@@ -1,14 +1,32 @@
-<mat-toolbar color="primary">
-  <span>Korp - Sistema de emissão de 
-Notas Fiscais </span>
+<mat-toolbar color="primary" class="app-toolbar">
+  <mat-icon>receipt_long</mat-icon>
+  <span class="toolbar-title">Korp — Sistema de Notas Fiscais</span>
 </mat-toolbar>
 
-<main class="content">
-  <app-produto-form></app-produto-form>
+<div class="page-container">
+  <mat-tab-group animationDuration="200ms" mat-stretch-tabs="false">
 
-  <app-produto-list></app-produto-list>
-  
-  <app-nota-fiscal-form></app-nota-fiscal-form>
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">inventory_2</mat-icon>
+        Estoque
+      </ng-template>
+      <div class="tab-content">
+        <app-produto-form></app-produto-form>
+        <app-produto-list></app-produto-list>
+      </div>
+    </mat-tab>
 
-  <app-nota-fiscal-list></app-nota-fiscal-list>
-</main>
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">description</mat-icon>
+        Notas Fiscais
+      </ng-template>
+      <div class="tab-content">
+        <app-nota-fiscal-form></app-nota-fiscal-form>
+        <app-nota-fiscal-list></app-nota-fiscal-list>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

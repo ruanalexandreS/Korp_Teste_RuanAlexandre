@@ -1,42 +1,52 @@
-<form [formGroup]="produtoForm" (ngSubmit)="onSubmit()">
 <mat-card>
-    <mat-card-header>
-    <mat-card-title>Cadastrar Novo Produto</mat-card-title>
-    </mat-card-header>
+  <mat-card-header>
+    <mat-icon mat-card-avatar>add_box</mat-icon>
+    <mat-card-title>Cadastrar Produto</mat-card-title>
+    <mat-card-subtitle>Preencha os dados do novo produto</mat-card-subtitle>
+  </mat-card-header>
 
-    <mat-card-content>
-    <mat-form-field appearance="fill">
+  <mat-card-content>
+    <form [formGroup]="produtoForm" (ngSubmit)="onSubmit()" class="form-grid">
+
+      <mat-form-field appearance="outline">
         <mat-label>Código</mat-label>
-        <input matInput formControlName="codigo">
-        <mat-error *ngIf="produtoForm.get('codigo')?.hasError('required')">
-        Código é obrigatório
-        </mat-error>
-    </mat-form-field>
+        <input matInput formControlName="codigo" placeholder="Ex: PROD-001">
+        <mat-icon matSuffix>qr_code</mat-icon>
+        @if (produtoForm.get('codigo')?.hasError('required') && produtoForm.get('codigo')?.touched) {
+          <mat-error>Código é obrigatório</mat-error>
+        }
+      </mat-form-field>
 
-    <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Descrição</mat-label>
-        <input matInput formControlName="descricao">
-        <mat-error *ngIf="produtoForm.get('descricao')?.hasError('required')">
-        Descrição é obrigatória
-        </mat-error>
-    </mat-form-field>
+        <input matInput formControlName="descricao" placeholder="Ex: Parafuso M8">
+        <mat-icon matSuffix>label</mat-icon>
+        @if (produtoForm.get('descricao')?.hasError('required') && produtoForm.get('descricao')?.touched) {
+          <mat-error>Descrição é obrigatória</mat-error>
+        }
+      </mat-form-field>
 
-    <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline" class="saldo-field">
         <mat-label>Saldo Inicial</mat-label>
-        <input matInput type="number" formControlName="saldo">
-        <mat-error *ngIf="produtoForm.get('saldo')?.hasError('required')">
-        Saldo é obrigatório
-        </mat-error>
-        <mat-error *ngIf="produtoForm.get('saldo')?.hasError('min')">
-        Saldo não pode ser negativo
-        </mat-error>
-    </mat-form-field>
-    </mat-card-content>
+        <input matInput type="number" formControlName="saldo" min="0">
+        <mat-icon matSuffix>inventory</mat-icon>
+        @if (produtoForm.get('saldo')?.hasError('min')) {
+          <mat-error>Saldo não pode ser negativo</mat-error>
+        }
+      </mat-form-field>
 
-    <mat-card-actions>
-    <button mat-raised-button color="primary" type="submit" [disabled]="produtoForm.invalid">
-        Salvar Produto
-    </button>
-    </mat-card-actions>
+      <div class="form-actions">
+        <button mat-flat-button color="primary" type="submit"
+          [disabled]="produtoForm.invalid || loading">
+          @if (loading) {
+            <mat-spinner diameter="20" color="accent"></mat-spinner>
+          } @else {
+            <mat-icon>save</mat-icon>
+          }
+          Salvar Produto
+        </button>
+      </div>
+
+    </form>
+  </mat-card-content>
 </mat-card>
-</form>

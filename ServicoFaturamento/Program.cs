@@ -1,7 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using ServicoFaturamento.Data;
-using ServicoFaturamento.Models;
-using System.Data.SqlTypes;
 using ServicoFaturamento.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
