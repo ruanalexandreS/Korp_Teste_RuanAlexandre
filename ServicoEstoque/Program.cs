@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ServicoEstoque.Data;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,8 +19,13 @@ if (useInMemory)
 }
 else
 {
+    var connectionString = builder.Configuration
+        .GetConnectionString("DefaultConnection");
+
+    // Se a URL vier do Railway (começa com postgresql://)
+    // o Npgsql já entende automaticamente
     builder.Services.AddDbContext<EstoqueContext>(opt =>
-        opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        opt.UseNpgsql(connectionString));  // ← era UseSqlServer, vira UseNpgsql
 }
 
 builder.Services.AddEndpointsApiExplorer();
