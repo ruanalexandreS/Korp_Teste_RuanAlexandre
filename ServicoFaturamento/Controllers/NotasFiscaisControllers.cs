@@ -2,24 +2,28 @@
 using Microsoft.EntityFrameworkCore;
 using ServicoFaturamento.Data;
 using ServicoFaturamento.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ServicoFaturamento.Controllers
 {
-    [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
+    [Route("notas")]
     public class NotasFiscaisController : ControllerBase
     {
         private readonly FaturamentoContext _context;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<NotasFiscaisController> _logger;
+        private readonly IConfiguration _configuration;
         private const string StatusAberta = "Aberta";
         private const string StatusFechada = "Fechada";
 
-        public NotasFiscaisController(FaturamentoContext context, IHttpClientFactory httpClientFactory, ILogger<NotasFiscaisController> logger)
+        public NotasFiscaisController(FaturamentoContext context, IHttpClientFactory httpClientFactory, ILogger<NotasFiscaisController> logger, IConfiguration configuration)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;
             _logger = logger;
+            _configuration = configuration;
         }
 
         // POST: api/notasfiscais
@@ -87,7 +91,7 @@ namespace ServicoFaturamento.Controllers
         }
 
         // POST: api/notasfiscais/{id}/imprimir
-      [HttpPost("{id}/imprimir")]
+    [HttpPost("{id}/imprimir")]
 public async Task<IActionResult> ImprimirNotaFiscal(
     int id,
     [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey)
@@ -114,7 +118,11 @@ public async Task<IActionResult> ImprimirNotaFiscal(
     if (notaFiscal.Status != StatusAberta)
         return BadRequest($"Esta nota fiscal não pode ser impressa (Status: {notaFiscal.Status}).");
 
-    var httpClient = _httpClientFactory.CreateClient("ServicoEstoque");
+var httpClient = _httpClientFactory.CreateClient("ServicoEstoque");
+httpClient.DefaultRequestHeaders.Add(
+    "X-Internal-Key",
+    _configuration["InternalApiKey"]
+);
 
     try
     {
@@ -124,7 +132,7 @@ public async Task<IActionResult> ImprimirNotaFiscal(
             {
                 var response = await httpClient.PutAsJsonAsync(
                     $"api/produtos/{item.ProdutoId}/atualizar-saldo", item.Quantidade);
-                response!.EnsureSuccessStatusCode();
+                response.EnsureSuccessStatusCode();
             }
         }
     }

@@ -366,3 +366,6 @@ FodyWeavers.xsd
 KorpApp/node_modules/appsettings.json
 appsettings.json
 .claude/
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/appsettings.Local.json
