@@ -168,7 +168,7 @@ O ServicoEstoque não deve ser acessível publicamente — apenas pelo ServicoFa
 
 | Serviço | URL |
 |---|---|
-| 🖥️ Frontend (Angular) | `https://SEU-PROJETO.vercel.app` |
+| 🖥️ Frontend (Angular) | `https://portfolio-ruan-alexandre-s.vercel.app/` |
 | ⚙️ API Faturamento (Swagger) | `https://korptesteruanalexandre-production.up.railway.app/swagger` |
 | 📦 API Estoque (Swagger) | `https://resilient-delight-production.up.railway.app/swagger` |
 
