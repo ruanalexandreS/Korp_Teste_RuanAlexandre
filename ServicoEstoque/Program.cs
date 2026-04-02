@@ -34,8 +34,13 @@ builder.Services.AddSwaggerGen();
 // Configuração de CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin()
+    options.AddPolicy("AllowFrontend", policy =>
+        policy
+            .WithOrigins(
+                "http://localhost:4200",
+                "http://localhost:7103",
+                "https://korptesteruanalexandre-production.up.railway.app"
+            )
             .AllowAnyMethod()
             .AllowAnyHeader());
 });
@@ -43,9 +48,6 @@ builder.Services.AddCors(options =>
 // Registro de HttpClient para serviços externos
 builder.Services.AddHttpClient<ServicoEstoque.Services.IAService>();
 
-// ==========================================
-// LINHA DIVISÓRIA: CONSTRUÇÃO DO APP
-// ==========================================
 var app = builder.Build();
 
 // ==========================================

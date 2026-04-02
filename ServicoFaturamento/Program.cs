@@ -127,7 +127,7 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 
 // 2º Segurança e Redirecionamento
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 
 // 3º Autenticação e Autorização (Sempre antes dos Controllers)
 app.UseAuthentication(); 

@@ -1,0 +1,58 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ master ]
+    pull_request:
+    branches: [ master ]
+
+jobs:
+
+  # ─────────────────────────────────────────
+  # JOB 1: Build e Testes do Backend .NET
+  # ─────────────────────────────────────────
+
+  backend:
+    name: Backend (.NET 8)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restaurar dependências
+        run: dotnet restore korp_Teste_RuanAlexandre.sln
+
+      - name: Build da solução
+        run: dotnet build korp_Teste_RuanAlexandre.sln --no-restore -c Release
+
+      - name: Executar testes unitários
+        run: dotnet test korp_Teste_RuanAlexandre.sln --no-build -c Release --verbosity normal
+
+  # ─────────────────────────────────────────
+  # JOB 2: Build do Frontend Angular
+  # ─────────────────────────────────────────
+  frontend:
+    name: Frontend (Angular)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: KorpApp/package-lock.json
+
+      - name: instalar dependências
+        working-directory: KorpApp
+        run: npm ci
+
+      - name: Build do Angular
+        working-directory: KorpApp
+        run: npm run build -- --configuration production
